@@ -4,7 +4,7 @@ const cors = require('cors');
 
 const app = express();
 
-// Middleware - إعدادات CORS للسماح بالاتصال من أي مصدر
+// Middleware - إعدادات CORS للسماح بالاتصال من الفرونت إند
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -13,10 +13,10 @@ app.use(cors({
 
 app.use(express.json());
 
-// رابط الاتصال المباشر بقاعدة البيانات MongoDB Atlas
-const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://karasromany23390_db_user:karas123@cluster0.mongodb.net/covers-store?retryWrites=true&w=majority&appName=Cluster0";
+// رابط الاتصال المباشر بقاعدة البيانات الصحيح
+const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://karasromany23390_db_user:karas123@cluster0.fbopz0b.mongodb.net/covers-store?retryWrites=true&w=majority&appName=Cluster0";
 
-// دالة الاتصال بقاعدة البيانات لضمان نجاح الاتصال قبل تنفيذ الاستعلامات
+// دالة الاتصال بقاعدة البيانات
 let isConnected = false;
 
 const connectDB = async () => {
@@ -25,7 +25,7 @@ const connectDB = async () => {
   }
   try {
     const db = await mongoose.connect(MONGO_URI, {
-      serverSelectionTimeoutMS: 5000 // تقليل وقت الانتظار لتكتشف المشاكل بسرعة
+      serverSelectionTimeoutMS: 5000
     });
     isConnected = db.connections[0].readyState === 1;
     console.log('MongoDB Connected Successfully!');
@@ -35,7 +35,7 @@ const connectDB = async () => {
   }
 };
 
-// تعريف Schema و Model للجرابات
+// Schema & Model
 const coverSchema = new mongoose.Schema({
   title: String,
   brand: String,
@@ -46,12 +46,12 @@ const coverSchema = new mongoose.Schema({
 
 const Cover = mongoose.models.Cover || mongoose.model('Cover', coverSchema);
 
-// الصفحة الرئيسية للروابط
+// Root Route
 app.get('/', (req, res) => {
   res.json({ message: "Welcome to Mobile Covers Store API" });
 });
 
-// GET /api/covers - جلب الجرابات
+// GET /api/covers
 app.get('/api/covers', async (req, res) => {
   try {
     await connectDB();
@@ -65,7 +65,7 @@ app.get('/api/covers', async (req, res) => {
   }
 });
 
-// POST /api/covers - إضافة جراب جديد
+// POST /api/covers
 app.post('/api/covers', async (req, res) => {
   try {
     await connectDB();
