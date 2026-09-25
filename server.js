@@ -20,7 +20,7 @@ mongoose.connect(MONGO_URI)
   .then(() => console.log('MongoDB Connected!'))
   .catch((err) => console.error('MongoDB Connection Error:', err));
 
-// تعريف الـ Schema والـ Model مباشرة لمنع أخطاء المسارات
+// Schema & Model
 const coverSchema = new mongoose.Schema({
   title: String,
   brand: String,
@@ -44,8 +44,8 @@ app.get('/api/covers', async (req, res) => {
     const covers = await Cover.find(filter);
     res.json(covers);
   } catch (error) {
-    console.error('Error fetching covers:', error);
-    res.status(500).json({ error: 'Server Error' });
+    console.error('Error fetching covers:', error.message);
+    res.status(500).json({ error: 'Server Error', details: error.message });
   }
 });
 
@@ -56,8 +56,8 @@ app.post('/api/covers', async (req, res) => {
     const savedCover = await newCover.save();
     res.status(201).json(savedCover);
   } catch (error) {
-    console.error('Error adding cover:', error);
-    res.status(400).json({ error: 'Invalid data' });
+    console.error('Error adding cover:', error.message);
+    res.status(400).json({ error: 'Invalid data', details: error.message });
   }
 });
 
