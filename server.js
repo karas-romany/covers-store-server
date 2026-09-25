@@ -4,7 +4,7 @@ const cors = require('cors');
 
 const app = express();
 
-// Middleware - CORS
+// Middleware - إعدادات CORS للسماح بالاتصال من أي مصدر
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -13,14 +13,29 @@ app.use(cors({
 
 app.use(express.json());
 
-// MongoDB Connection
-const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://karasromany23390_db_user:karas123@cluster0.mongodb.net/covers-store?retryWrites=true&w=majority";
+// رابط الاتصال المباشر بقاعدة البيانات MongoDB Atlas
+const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://karasromany23390_db_user:karas123@cluster0.mongodb.net/covers-store?retryWrites=true&w=majority&appName=Cluster0";
 
-mongoose.connect(MONGO_URI)
-  .then(() => console.log('MongoDB Connected!'))
-  .catch((err) => console.error('MongoDB Connection Error:', err));
+// دالة الاتصال بقاعدة البيانات لضمان نجاح الاتصال قبل تنفيذ الاستعلامات
+let isConnected = false;
 
-// Schema & Model
+const connectDB = async () => {
+  if (isConnected && mongoose.connection.readyState === 1) {
+    return;
+  }
+  try {
+    const db = await mongoose.connect(MONGO_URI, {
+      serverSelectionTimeoutMS: 5000 // تقليل وقت الانتظار لتكتشف المشاكل بسرعة
+    });
+    isConnected = db.connections[0].readyState === 1;
+    console.log('MongoDB Connected Successfully!');
+  } catch (err) {
+    console.error('MongoDB Connection Error:', err);
+    throw err;
+  }
+};
+
+// تعريف Schema و Model للجرابات
 const coverSchema = new mongoose.Schema({
   title: String,
   brand: String,
@@ -31,14 +46,15 @@ const coverSchema = new mongoose.Schema({
 
 const Cover = mongoose.models.Cover || mongoose.model('Cover', coverSchema);
 
-// Root Route
+// الصفحة الرئيسية للروابط
 app.get('/', (req, res) => {
   res.json({ message: "Welcome to Mobile Covers Store API" });
 });
 
-// GET /api/covers
+// GET /api/covers - جلب الجرابات
 app.get('/api/covers', async (req, res) => {
   try {
+    await connectDB();
     const { brand } = req.query;
     const filter = brand ? { brand: new RegExp(brand, 'i') } : {};
     const covers = await Cover.find(filter);
@@ -49,9 +65,10 @@ app.get('/api/covers', async (req, res) => {
   }
 });
 
-// POST /api/covers
+// POST /api/covers - إضافة جراب جديد
 app.post('/api/covers', async (req, res) => {
   try {
+    await connectDB();
     const newCover = new Cover(req.body);
     const savedCover = await newCover.save();
     res.status(201).json(savedCover);
